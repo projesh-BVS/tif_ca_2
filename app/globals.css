@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      border-radius: 0.5rem;      
+    }    
+  }
+
+    input[type="range"]::-webkit-slider-thumb {
+      pointer-events: auto;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      -webkit-appearance: none;
+      @apply bg-tif-blue;
+    }
