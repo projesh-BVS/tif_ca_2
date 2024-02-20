@@ -6,27 +6,49 @@ import ProductViewModelCard from "@/components/Product View/ProductViewModelCard
 import ProductViewNavBar from "@/components/Product View/ProductViewNavBar/ProductViewNavBar";
 import useProduct from "@/hooks/useProduct";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const ProductView = ({ params }) => {
   const { product, isProductLoading, isProductError } = useProduct(
     params.productID
   );
 
+  const router = useRouter();
+  let pageStartTime;
+
+  /*useEffect(() => {
+    const handleRouteChange = (url, { shallow }) => {
+      console.log(
+        `App is changing to ${url} ${
+          shallow ? "with" : "without"
+        } shallow routing`
+      );
+    };
+
+    router.events.on("routeChangeStart", handleRouteChange);
+
+    // If the component is unmounted, unsubscribe
+    // from the event with the `off` method:
+    return () => {
+      router.events.off("routeChangeStart", handleRouteChange);
+    };
+  }, [router]);*/
+
   const [analyticsViewsFields, setAnalyticsViewsFields] = useState({
     productID: 0,
     ARloadtime: 100,
-    ARviews: 1,
+    ARviews: 0,
     clicksToAddToCart: 2,
     clicksToWishlist: 3,
-    clickToColorChange: 4,
-    clickToTextureChange: 5,
+    clickToColorChange: 0,
+    clickToTextureChange: 0,
     duration360: 6,
     durationAR: 7,
-    Loadtime360: 100,
+    Loadtime360: 0,
     productSKU: 0,
     screenshotsInAR: 8,
     videosInAR: 9,
-    views360: 10,
+    views360: 1,
   });
 
   console.log("Product Data Fetched: ");
@@ -35,36 +57,78 @@ const ProductView = ({ params }) => {
   useEffect(() => {
     if (product) {
       SetAnalyticsData(product);
+      pageStartTime = new Date().getTime();
+      console.log("Started Loading Page at " + pageStartTime + "ms");
     }
   }, [product]);
 
   useEffect(() => {
-    if (product) {
-      console.log("Uploading analytics data");
-      uploadAnalytics();
-    }
+    console.log(
+      "Use Effect -> Analytics Views Fields -> " +
+        JSON.stringify(analyticsViewsFields)
+    );
   }, [analyticsViewsFields]);
 
   function SetAnalyticsData(productData) {
+    console.log("Trying to set analytics- " + JSON.stringify(productData));
     var anl_data = {
       productID: productData.data.productID,
       ARloadtime: 100,
-      ARviews: 1,
+      ARviews: 0,
       clicksToAddToCart: 2,
       clicksToWishlist: 3,
-      clickToColorChange: 4,
-      clickToTextureChange: 5,
+      clickToColorChange: 0,
+      clickToTextureChange: 0,
       duration360: 6,
       durationAR: 7,
-      Loadtime360: 100,
-      productSKU: 0,
+      Loadtime360: 0,
+      productSKU: productData.data.productID,
       screenshotsInAR: 8,
       videosInAR: 9,
-      views360: 10,
+      views360: 1,
     };
 
     setAnalyticsViewsFields(anl_data);
-    console.log("Analytics data set: " + JSON.stringify(analyticsViewsFields));
+    console.log("Analytics data set: " + JSON.stringify(anl_data));
+  }
+
+  function UpdateAnalyticsData_VariantChanged() {
+    var anl_data = analyticsViewsFields;
+    anl_data.clickToColorChange += 1;
+    anl_data.clickToTextureChange += 1;
+
+    console.log(
+      "ANL UPDATE | Variant Changed | To: " + anl_data.clickToColorChange
+    );
+
+    setAnalyticsViewsFields(anl_data);
+    console.log("Updated data set: " + JSON.stringify(analyticsViewsFields));
+  }
+
+  function UpdateAnalyticsData_ARViewActivated() {
+    var anl_data = analyticsViewsFields;
+    anl_data.ARviews += 1;
+
+    console.log("ANL UPDATE | AR Views | To: " + anl_data.ARviews);
+
+    setAnalyticsViewsFields(anl_data);
+    console.log("Updated data set: " + JSON.stringify(analyticsViewsFields));
+  }
+
+  function UpdateAnalyticsData_LoadTime360() {
+    let loadTime = (new Date().getTime() - pageStartTime) / 1000;
+    var anl_data = analyticsViewsFields;
+    anl_data.Loadtime360 = loadTime;
+
+    console.log(
+      "ANL UPDATE | 360 Load Time | To: " + anl_data.Loadtime360 + "s"
+    );
+    console.log(
+      "Current Analytics Data -> " + JSON.stringify(analyticsViewsFields)
+    );
+
+    setAnalyticsViewsFields(anl_data);
+    console.log("Updated data set: " + JSON.stringify(analyticsViewsFields));
   }
 
   const uploadAnalytics = async () => {
@@ -80,16 +144,23 @@ const ProductView = ({ params }) => {
       if (response.status === 200) {
         console.log("Analytics data upload successful");
       } else {
-        console.log("Analytics upload error");
+        console.log("Analytics upload error 1");
       }
     } catch (err) {
-      console.log("Analytics upload error");
+      console.log("Analytics upload error 2");
     }
   };
 
+  function Callback_OnBackButtonClicked() {
+    uploadAnalytics();
+    router.back();
+  }
+
   return (
     <main className="flex md:flex-row flex-col items-center justify-center w-screen h-[100svh] bg-white">
-      <ProductViewNavBar />
+      <ProductViewNavBar
+        Callback_OnBackButtonClicked={Callback_OnBackButtonClicked}
+      />
       {isProductLoading && (
         <section className="flex flex-col p-4 gap-2 items-center justify-between w-full text-gray-500">
           <LoadingIndicator />
@@ -123,7 +194,12 @@ const ProductView = ({ params }) => {
       {product && product.data != null && !isProductError && (
         <section className="flex md:flex-row flex-col md:items-center md:justify-center md:gap-6 md:p-6 w-full h-full">
           <section className="w-full md:h-2/3 h-1/3 bg-white">
-            <ProductViewModelCard productInfo={product} />
+            <ProductViewModelCard
+              productInfo={product}
+              analyticsOnVariantChanged={UpdateAnalyticsData_VariantChanged}
+              analyticsOnARView={UpdateAnalyticsData_ARViewActivated}
+              analyticsOnLoad360={UpdateAnalyticsData_LoadTime360}
+            />
           </section>
           <section className="z-10 w-full h-2/3 bg-gray-100 md:rounded-3xl rounded-t-3xl shadow-[0_10px_25px_5px_rgba(0,0,0,0.25)] border-gray-300 border-t-2">
             <ProductViewInfoCard productInfo={product} />

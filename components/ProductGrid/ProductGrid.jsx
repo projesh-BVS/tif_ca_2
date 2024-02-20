@@ -1,6 +1,12 @@
 import PG_Card from "./SubComps/PG_Card";
 
-const ProductGrid = ({ productItems, category, outlet, priceRange }) => {
+const ProductGrid = ({
+  productItems,
+  category,
+  outlet,
+  priceRange,
+  isDisabled = false,
+}) => {
   console.log("PG -> Outlet -> " + JSON.stringify(outlet));
   console.log("PG -> Price Range -> " + JSON.stringify(priceRange));
 
@@ -21,10 +27,25 @@ const ProductGrid = ({ productItems, category, outlet, priceRange }) => {
     : outletFilteredList;
 
   return (
-    <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 pt-0 p-4 gap-4">
-      {priceFilteredList.map((product) => (
-        <PG_Card key={product.productID} productInfo={product} />
-      ))}
+    <section
+      className={`${
+        isDisabled
+          ? "flex w-full p-4"
+          : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 pt-0 p-4 gap-4"
+      }`}
+    >
+      {!isDisabled &&
+        priceFilteredList.map((product) => (
+          <PG_Card key={product.productID} productInfo={product} />
+        ))}
+      {isDisabled && (
+        <div className="flex flex-col w-full h-full gap-1 items-center justify-center">
+          <h1 className="font-semibold text-xl text-tif-blue">Sorry,</h1>
+          <h1 className="font-medium text-base text-gray-400 italic">
+            No Products in Catalogue
+          </h1>
+        </div>
+      )}
     </section>
   );
 };

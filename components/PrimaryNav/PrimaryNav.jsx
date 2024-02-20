@@ -9,6 +9,7 @@ const PrimaryNav = ({
   activeCategoryCallback,
   openAboutUsModalCallback,
   openFiltersModalCallback,
+  isDisabled = false,
 }) => {
   function categoryChangedCallback(categoryName) {
     activeCategoryCallback(categoryName);
@@ -60,8 +61,9 @@ const PrimaryNav = ({
           <section className="flex items-center justify-center w-full md:w-[20%] px-4 gap-2">
             {/*<PN_SearchBar />*/}
             <button
-              className="flex items-center justify-center px-4 py-2 gap-4 font-medium text-white bg-tif-blue rounded-full shadow-lg w-full"
+              className="flex items-center justify-center px-4 py-2 gap-4 font-medium text-white bg-tif-blue disabled:bg-tif-blue/50 rounded-full shadow-lg w-full"
               onClick={() => openFiltersModalCallback()}
+              disabled={isDisabled}
             >
               <FunnelIcon className="w-5 h-5" />
               <h1>Filters</h1>
@@ -74,6 +76,7 @@ const PrimaryNav = ({
           id="PrimaryCatSlider"
           currActiveCategory={activeCategory}
           activeCategoryCallback={categoryChangedCallback}
+          isDisabled={isDisabled}
         />
       </section>
 

@@ -6,6 +6,7 @@ const CategorySlider = ({
   id,
   currActiveCategory,
   activeCategoryCallback,
+  isDisabled = false,
 }) => {
   const [activeCategory, setActiveCategory] = useState(currActiveCategory);
 
@@ -24,13 +25,16 @@ const CategorySlider = ({
           catID={id + "_category_" + "-1"}
           catActive={activeCategory}
           onClickCallback={handleCategoryChange}
+          isDisabled={isDisabled}
         />
         {categoryItems.map((category, index) => (
           <CS_Card
+            key={id + "_category_" + index}
             catName={Object.keys(category)}
             catID={id + "_category_" + index}
             catActive={activeCategory}
             onClickCallback={handleCategoryChange}
+            isDisabled={isDisabled}
           />
         ))}
       </div>

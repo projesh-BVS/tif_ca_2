@@ -95,7 +95,8 @@ const Home = () => {
     );
   }
 
-  if (company.catalogue.length == 0) {
+  {
+    /*if (company.catalogue.length == 0) {
     return (
       <div className="flex bg-gray-400 p-8 w-screen h-screen justify-center items-center">
         <h2 className="text-blue-900 font-normal text-lg">
@@ -103,6 +104,7 @@ const Home = () => {
         </h2>
       </div>
     );
+  }*/
   }
 
   if (isCompanyError) {
@@ -136,12 +138,14 @@ const Home = () => {
         activeCategoryCallback={handleCategoryChange}
         openAboutUsModalCallback={Callback_Modal_AboutUs_Open}
         openFiltersModalCallback={Callback_Modal_Filters_Open}
+        isDisabled={company.catalogue.length == 0}
       />
       <ProductGrid
         productItems={company.catalogue}
         category={activeCategory}
         outlet={activeOutlet}
         priceRange={activePriceRange}
+        isDisabled={company.catalogue.length == 0}
       />
     </main>
   );
