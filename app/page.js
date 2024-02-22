@@ -3,22 +3,12 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import PrimaryNav from "@/components/PrimaryNav/PrimaryNav";
-import CategorySlider from "@/components/CategorySlider/CategorySlider";
 import ProductGrid from "@/components/ProductGrid/ProductGrid";
 import useCompany from "@/hooks/useCompany";
-import LoadingIndicator from "@/components/Common/LoadingIndicator";
 import ModalAbout from "@/components/ModalAbout/ModalAbout";
 import ModalFilters from "@/components/ModalFilters/ModalFilters";
-
-const catItems = [
-  "All",
-  "Furnitures",
-  "Electornics",
-  "Appliances",
-  "Clothes",
-  "Accessories",
-  "Games",
-];
+import ModalWishlist from "@/components/ModalWishlist/ModalWishlist";
+import { LoadWishlist } from "@/utils/wishlistUtils";
 
 const Home = () => {
   const searchParams = useSearchParams();
@@ -27,6 +17,31 @@ const Home = () => {
   const { company, isCompanyLoading, isCompanyError } = useCompany(
     companyIDQuery ? parseInt(companyIDQuery) : 102
   );
+
+  /*useEffect(() => {
+    if (typeof window !== "undefined") {
+      customerWishlist = JSON.parse(
+        window.localStorage.getItem(
+          "tif-wishlist-" + companyIDQuery ? parseInt(companyIDQuery) : 102
+        )
+      );
+      console.log(
+        "Searching for -> " +
+          "tif-wishlist-" +
+          (companyIDQuery ? parseInt(companyIDQuery) : 102)
+      );
+      //console.log(customerWishlist);
+      console.log(
+        "Stored Wishlist -> " +
+          JSON.parse(
+            window.localStorage.getItem(
+              "tif-wishlist-" + companyIDQuery ? parseInt(companyIDQuery) : 102
+            )
+          )
+      );
+    }
+  }, [company]);*/
+
   const [activeCategory, setActiveCategory] = useState(["All"]);
   const [activeOutlet, setActiveOutlet] = useState(-1);
   const [activePriceRange, setActivePriceRange] = useState({
@@ -35,6 +50,8 @@ const Home = () => {
   });
   const [openAboutUsModal, setOpenAboutUsModal] = useState(false);
   const [openFiltersModal, setOpenFiltersModal] = useState(false);
+  const [openWishlistModal, setOpenWishlistModal] = useState(false);
+  const [customerWishlist, setCustomerWishlist] = useState(null);
 
   const handleCategoryChange = (newActiveCategory) => {
     setActiveCategory(newActiveCategory);
@@ -60,6 +77,21 @@ const Home = () => {
     setOpenFiltersModal(true);
   }
 
+  function Callback_Modal_Wishlist_Open() {
+    setOpenWishlistModal(true);
+  }
+
+  function Callback_Modal_Wishlist_Close() {
+    setOpenWishlistModal(false);
+  }
+
+  function Callback_Modal_Wishlist_RemoveItem() {
+    console.log("Removing item");
+    setCustomerWishlist(
+      LoadWishlist(companyIDQuery ? parseInt(companyIDQuery) : 102)
+    );
+  }
+
   function Callback_Modal_Filters_Close(outletFilter, priceRangeFilter) {
     console.log("Outlet Filter recieved at page -> " + outletFilter);
     console.log(
@@ -83,6 +115,12 @@ const Home = () => {
       .catch((error) => {
         console.error("Error loading Model Viewer", error);
       });
+
+    setCustomerWishlist(
+      LoadWishlist(companyIDQuery ? parseInt(companyIDQuery) : 102)
+    );
+
+    console.log("Customer Wishlist -> " + customerWishlist);
   }, []); // We pass an empty dependency array so this runs once on mount.
 
   if (isCompanyLoading) {
@@ -132,12 +170,20 @@ const Home = () => {
         activePriceRange={activePriceRange}
         callback_OnClose={Callback_Modal_Filters_Close}
       />
+      <ModalWishlist
+        doOpen={openWishlistModal}
+        wishlistData={customerWishlist}
+        companyProducts={company.catalogue}
+        callback_OnClose={Callback_Modal_Wishlist_Close}
+        callback_OnRemove={Callback_Modal_Wishlist_RemoveItem}
+      />
       <PrimaryNav
         companyInfo={company.company[0]}
         activeCategory={activeCategory}
         activeCategoryCallback={handleCategoryChange}
         openAboutUsModalCallback={Callback_Modal_AboutUs_Open}
         openFiltersModalCallback={Callback_Modal_Filters_Open}
+        openWishlistCallback={Callback_Modal_Wishlist_Open}
         isDisabled={company.catalogue.length == 0}
       />
       <ProductGrid

@@ -1,6 +1,51 @@
 import { getFormattedPrice } from "@/utils/productInfoUtils";
+import {
+  AddToWishlist,
+  DoesWishlistContain,
+  RemoveFromWishlist,
+} from "@/utils/wishlistUtils";
+import { HeartIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { useEffect, useState } from "react";
 
 const ProductViewInfoCard = ({ productInfo }) => {
+  const [isInWishlist, setIsInWishlist] = useState(false);
+
+  useEffect(() => {
+    setIsInWishlist(
+      DoesWishlistContain(
+        productInfo.data.productID,
+        productInfo.data.companyID
+      )
+    );
+    console.log("Is in wishlist - " + isInWishlist);
+  }, []);
+
+  function Callback_OnAddToWishlist() {
+    setIsInWishlist(true);
+  }
+
+  function Callback_OnRemoveFromWishlist() {
+    setIsInWishlist(false);
+  }
+
+  function wishListAction() {
+    if (isInWishlist) {
+      console.log("Trying to remove from wishlist");
+      RemoveFromWishlist(
+        productInfo.data.productID,
+        productInfo.data.companyID,
+        Callback_OnRemoveFromWishlist
+      );
+    } else {
+      console.log("Trying to add to wishlist");
+      AddToWishlist(
+        productInfo.data.productID,
+        productInfo.data.companyID,
+        Callback_OnAddToWishlist
+      );
+    }
+  }
+
   return (
     <section className="flex flex-col items-center justify-between w-full h-full">
       <div className="flex flex-col p-4 gap-4 w-full overflow-y-auto">
@@ -47,7 +92,7 @@ const ProductViewInfoCard = ({ productInfo }) => {
         <hr />
       </div>
 
-      <div className="flex flex-col p-4 w-full py-4">
+      <div className="flex flex-col p-4 w-full py-4 gap-2">
         <div className="flex flex-col gap-2 p-4 border-tif-blue border-2 rounded-2xl">
           <h2 className="text-lg font-medium">Price</h2>
           <div className="flex items-center gap-4">
@@ -78,6 +123,18 @@ const ProductViewInfoCard = ({ productInfo }) => {
             </div>
           </div>
         </div>
+        <button
+          className={`flex gap-2 p-4 items-center justify-center text-white text-md rounded-2xl shadow-md hover:shadow-lg transition-all ${
+            isInWishlist
+              ? "bg-red-500 hover:bg-red-600"
+              : "bg-tif-blue hover:bg-tif-lavender"
+          }`}
+          onClick={() => wishListAction()}
+        >
+          {!isInWishlist && <HeartIcon className="h-5 w-5" />}
+          {isInWishlist && <TrashIcon className="h-5 w-5" />}
+          <h1>{isInWishlist ? "Remove from wishlist" : "Add to wishlist"}</h1>
+        </button>
       </div>
     </section>
   );
