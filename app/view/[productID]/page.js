@@ -8,13 +8,15 @@ import useProduct from "@/hooks/useProduct";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+var pageStartTime;
+var viewDuration360;
+
 const ProductView = ({ params }) => {
   const { product, isProductLoading, isProductError } = useProduct(
     params.productID
   );
 
   const router = useRouter();
-  let pageStartTime;
 
   /*useEffect(() => {
     const handleRouteChange = (url, { shallow }) => {
@@ -34,12 +36,12 @@ const ProductView = ({ params }) => {
     };
   }, [router]);*/
 
-  const [analyticsViewsFields, setAnalyticsViewsFields] = useState({
-    productID: 0,
+  /*const [analyticsViewsFields, setAnalyticsViewsFields] = useState({
+    productID: 5,
     ARloadtime: 100,
     ARviews: 0,
     clicksToAddToCart: 2,
-    clicksToWishlist: 3,
+    clicksToWishlist: 0,
     clickToColorChange: 0,
     clickToTextureChange: 0,
     duration360: 6,
@@ -49,7 +51,30 @@ const ProductView = ({ params }) => {
     screenshotsInAR: 8,
     videosInAR: 9,
     views360: 1,
-  });
+  });*/
+
+  /*
+    productID: Real
+    productSKU: Real
+    clicksToWishlist: Real    
+    views360: Real
+    ARviews: Real
+    clickToColorChange: Real
+    clickToTextureChange: Real
+
+    duration360: 6,
+    ARloadtime: 100,
+    durationAR: 7,
+
+    clicksToAddToCart: -NO CART AVAILABLE-
+    screenshotsInAR: -MAYBE NOT AVAILABLE-
+    videosInAR: -MAYBE NOT AVAILABLE-
+    
+*/
+  //const [pageStartTime, setPageStartTime] = useState(0);
+  const [analyticsViewsFields, setAnalyticsViewsFields] = useState(null);
+  const [loadTime360, setLoadTime360] = useState(0);
+  //const [duration360, setDuration360] = useState(0);
 
   console.log("Product Data Fetched: ");
   console.log(product);
@@ -58,28 +83,39 @@ const ProductView = ({ params }) => {
     if (product) {
       SetAnalyticsData(product);
       pageStartTime = new Date().getTime();
-      console.log("Started Loading Page at " + pageStartTime + "ms");
+      //setPageStartTime(new Date().getTime());
+      console.log(
+        "Started Loading Page at " +
+          pageStartTime +
+          "ms at " +
+          new Date().getTime()
+      );
     }
   }, [product]);
 
   useEffect(() => {
     console.log(
       "Use Effect -> Analytics Views Fields -> " +
-        JSON.stringify(analyticsViewsFields)
+        JSON.stringify(analyticsViewsFields) +
+        " | CALLED AT - " +
+        new Date().getTime()
     );
   }, [analyticsViewsFields]);
 
   function SetAnalyticsData(productData) {
+    console.log(
+      "INITIAL ANALYTICS DATA SET CALLED AT - " + new Date().getTime()
+    );
     console.log("Trying to set analytics- " + JSON.stringify(productData));
-    var anl_data = {
+    var initial_anl_data = {
       productID: productData.data.productID,
       ARloadtime: 100,
       ARviews: 0,
-      clicksToAddToCart: 2,
-      clicksToWishlist: 3,
+      clicksToAddToCart: 0,
+      clicksToWishlist: 0,
       clickToColorChange: 0,
       clickToTextureChange: 0,
-      duration360: 6,
+      duration360: 0,
       durationAR: 7,
       Loadtime360: 0,
       productSKU: productData.data.productID,
@@ -88,8 +124,20 @@ const ProductView = ({ params }) => {
       views360: 1,
     };
 
+    setAnalyticsViewsFields(initial_anl_data);
+    console.log("Analytics data set: " + JSON.stringify(initial_anl_data));
+  }
+
+  function UpdateAnalyticsData_WishlistClicked() {
+    var anl_data = analyticsViewsFields;
+    anl_data.clicksToWishlist += 1;
+
+    console.log(
+      "ANL UPDATE | Wishlist Clicks Changed | To: " + anl_data.clicksToWishlist
+    );
+
     setAnalyticsViewsFields(anl_data);
-    console.log("Analytics data set: " + JSON.stringify(anl_data));
+    console.log("Updated data set: " + JSON.stringify(analyticsViewsFields));
   }
 
   function UpdateAnalyticsData_VariantChanged() {
@@ -116,22 +164,42 @@ const ProductView = ({ params }) => {
   }
 
   function UpdateAnalyticsData_LoadTime360() {
+    // console.log("LoadTime360 UPDATE CALLED AT - " + new Date().getTime());
+    // let loadTime = (new Date().getTime() - pageStartTime) / 1000;
+    // var anl_data = analyticsViewsFields;
+    // console.log("ANALYTICS VIEWS FIELDS -> " + analyticsViewsFields);
+    // console.log("Copying analyticsViewFields: " + anl_data);
+
+    // if (!anl_data) {
+    //   return;
+    // } else {
+    //   anl_data.Loadtime360 = loadTime;
+
+    //   console.log(
+    //     "ANL UPDATE | 360 Load Time | To: " + anl_data.Loadtime360 + "s"
+    //   );
+    //   console.log(
+    //     "Current Analytics Data -> " + JSON.stringify(analyticsViewsFields)
+    //   );
+
+    //   setAnalyticsViewsFields(anl_data);
+    //   console.log("Updated data set: " + JSON.stringify(analyticsViewsFields));
+    // }
+
     let loadTime = (new Date().getTime() - pageStartTime) / 1000;
-    var anl_data = analyticsViewsFields;
-    anl_data.Loadtime360 = loadTime;
-
+    setLoadTime360(loadTime);
+    console.log("pageStartTime " + pageStartTime);
     console.log(
-      "ANL UPDATE | 360 Load Time | To: " + anl_data.Loadtime360 + "s"
+      "Load Time -> In Const: " + loadTime360 + " | In Calc: " + loadTime
     );
-    console.log(
-      "Current Analytics Data -> " + JSON.stringify(analyticsViewsFields)
-    );
-
-    setAnalyticsViewsFields(anl_data);
-    console.log("Updated data set: " + JSON.stringify(analyticsViewsFields));
   }
 
   const uploadAnalytics = async () => {
+    var anl_data = analyticsViewsFields;
+    anl_data.Loadtime360 = loadTime360;
+    anl_data.duration360 = viewDuration360;
+    setAnalyticsViewsFields(anl_data);
+
     console.log(
       "Uploading analytics - " + JSON.stringify(analyticsViewsFields)
     );
@@ -152,6 +220,19 @@ const ProductView = ({ params }) => {
   };
 
   function Callback_OnBackButtonClicked() {
+    console.log(
+      "CALCULATING DURATION -> Curr Time: " +
+        new Date().getTime() +
+        " | Start Time: " +
+        pageStartTime
+    );
+    let duration = (new Date().getTime() - pageStartTime) / 1000;
+    //setDuration360(duration);
+    viewDuration360 = duration;
+    console.log(
+      "Duration 360 -> In Const: " + viewDuration360 + " | In Calc: " + duration
+    );
+
     uploadAnalytics();
     router.back();
   }
@@ -202,7 +283,10 @@ const ProductView = ({ params }) => {
             />
           </section>
           <section className="z-10 w-full h-2/3 bg-gray-100 md:rounded-3xl rounded-t-3xl shadow-[0_10px_25px_5px_rgba(0,0,0,0.25)] border-gray-300 border-t-2">
-            <ProductViewInfoCard productInfo={product} />
+            <ProductViewInfoCard
+              productInfo={product}
+              analyticsOnWishlistClick={UpdateAnalyticsData_WishlistClicked}
+            />
           </section>
         </section>
       )}
@@ -211,3 +295,23 @@ const ProductView = ({ params }) => {
 };
 
 export default ProductView;
+
+/*
+    productID: Real
+    productSKU: Real
+    clicksToWishlist: Real
+    Loadtime360: Real
+    views360: Real
+    ARviews: Real
+    clickToColorChange: Real
+    clickToTextureChange: Real
+    duration360: Real
+    
+    ARloadtime: 100,
+    durationAR: 7,
+
+    clicksToAddToCart: -NO CART AVAILABLE-
+    screenshotsInAR: -MAYBE NOT AVAILABLE-
+    videosInAR: -MAYBE NOT AVAILABLE-
+    
+*/

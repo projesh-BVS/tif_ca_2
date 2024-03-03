@@ -1,9 +1,9 @@
 export function DoesWishlistContain(productID, companyID) {
   var customerWishlist = null;
 
-  console.log(
+  /*console.log(
     "Checking wishlist for product " + productID + " in company " + companyID
-  );
+  );*/
 
   /*if (typeof window !== "undefined") {
     customerWishlist = JSON.parse(

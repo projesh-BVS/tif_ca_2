@@ -7,7 +7,7 @@ import {
 import { HeartIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { useEffect, useState } from "react";
 
-const ProductViewInfoCard = ({ productInfo }) => {
+const ProductViewInfoCard = ({ productInfo, analyticsOnWishlistClick }) => {
   const [isInWishlist, setIsInWishlist] = useState(false);
 
   useEffect(() => {
@@ -22,6 +22,7 @@ const ProductViewInfoCard = ({ productInfo }) => {
 
   function Callback_OnAddToWishlist() {
     setIsInWishlist(true);
+    analyticsOnWishlistClick();
   }
 
   function Callback_OnRemoveFromWishlist() {
