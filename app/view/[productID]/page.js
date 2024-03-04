@@ -109,6 +109,7 @@ const ProductView = ({ params }) => {
     console.log("Trying to set analytics- " + JSON.stringify(productData));
     var initial_anl_data = {
       productName: productData.data.productName,
+      companyID: productData.data.companyID,
       productID: productData.data.productID,
       ARloadtime: 100,
       ARviews: 0,
