@@ -116,7 +116,7 @@ const ProductViewModelCard = ({
         auto-rotate
         autoplay
         ar
-        ar-modes="scene-viewer quick-look"
+        ar-modes="webxr scene-viewer quick-look"
         ar-scale="fixed"
       >
         <div
