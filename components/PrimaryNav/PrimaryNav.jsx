@@ -89,26 +89,6 @@ const PrimaryNav = ({
           isDisabled={isDisabled}
         />
       </section>
-
-      {/* About Us Modal */}
-      {/*
-        <section className="absolute flex flex-col m-auto top-0 bottom-0 left-0 right-0 pt-20 p-4 bg-gradient-to-t from-[rgb(0,0,0,0.7)] from-60% bg-opacity-70 z-50">
-          <div className="h-4 w-4 ml-20 -mb-2 rotate-45 bg-white"></div>
-          <div className="flex flex-col shrink-0 justify-between items-center p-6 w-full bg-white rounded-2xl shadow-xl">
-            <div className="rounded-full overflow-clip aspect-square w-[50%] relative border-2 border-black shadow-inner">
-              <Image
-                src={companyInfo.companyLogo}
-                alt="Company Logo"
-                quality={100}
-                fill
-                style={{ objectFit: "cover" }}
-                placeholder="blur"
-                blurDataURL={companyInfo.companyLogo}
-              />
-            </div>
-          </div>
-        </section>
-      */}
     </>
   );
 };

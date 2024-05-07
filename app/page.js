@@ -192,6 +192,7 @@ const Home = () => {
         outlet={activeOutlet}
         priceRange={activePriceRange}
         isDisabled={company.catalogue.length == 0}
+        wishlistData={customerWishlist}
       />
     </main>
   );

@@ -1,6 +1,8 @@
 import {
   CubeTransparentIcon,
   ExclamationTriangleIcon,
+  EyeIcon,
+  EyeSlashIcon,
 } from "@heroicons/react/24/solid";
 import { useEffect, useState } from "react";
 
@@ -10,6 +12,7 @@ const ProductViewModelCard = ({
   analyticsOnARView,
   analyticsOnLoad360,
 }) => {
+  const [showDimensions, setShowDimensions] = useState(true);
   const [showVariantSelector, setShowVariantSelector] = useState(false);
   const [showARButton, setShowARButton] = useState(false);
   const [hasARFailed, setHasARFailed] = useState(false);
@@ -101,6 +104,162 @@ const ProductViewModelCard = ({
     if (analyticsOnARView) analyticsOnARView();
   }
 
+  /* Dimensions */
+  const dimElements = currViewer
+    ? [
+        ...currViewer.querySelectorAll("button"),
+        currViewer.querySelector("#dimLines"),
+      ]
+    : null;
+
+  function HandleDimesionToggle() {
+    setVisibility(!showDimensions);
+    setShowDimensions((prev) => !prev);
+  }
+
+  function setVisibility(visible) {
+    console.log("Setting Dim Visibility - " + visible);
+    dimElements.forEach((element) => {
+      if (visible) {
+        element.classList.remove("hide");
+      } else {
+        element.classList.add("hide");
+      }
+    });
+  }
+
+  function drawLine(svgLine, dotHotspot1, dotHotspot2, dimensionHotspot) {
+    if (dotHotspot1 && dotHotspot2) {
+      svgLine.setAttribute("x1", dotHotspot1.canvasPosition.x);
+      svgLine.setAttribute("y1", dotHotspot1.canvasPosition.y);
+      svgLine.setAttribute("x2", dotHotspot2.canvasPosition.x);
+      svgLine.setAttribute("y2", dotHotspot2.canvasPosition.y);
+
+      if (dimensionHotspot && !dimensionHotspot.facingCamera) {
+        svgLine.classList.add("hide");
+      } else {
+        svgLine.classList.remove("hide");
+      }
+    }
+  }
+
+  const dimLines = currViewer?.querySelectorAll("line");
+
+  const renderSVG = () => {
+    drawLine(
+      dimLines[0],
+      currViewer.queryHotspot("hotspot-dot+X-Y+Z"),
+      currViewer.queryHotspot("hotspot-dot+X-Y-Z"),
+      currViewer.queryHotspot("hotspot-dim+X-Y")
+    );
+    drawLine(
+      dimLines[1],
+      currViewer.queryHotspot("hotspot-dot+X-Y-Z"),
+      currViewer.queryHotspot("hotspot-dot+X+Y-Z"),
+      currViewer.queryHotspot("hotspot-dim+X-Z")
+    );
+    drawLine(
+      dimLines[2],
+      currViewer.queryHotspot("hotspot-dot+X+Y-Z"),
+      currViewer.queryHotspot("hotspot-dot-X+Y-Z")
+    ); // always visible
+    drawLine(
+      dimLines[3],
+      currViewer.queryHotspot("hotspot-dot-X+Y-Z"),
+      currViewer.queryHotspot("hotspot-dot-X-Y-Z"),
+      currViewer.queryHotspot("hotspot-dim-X-Z")
+    );
+    drawLine(
+      dimLines[4],
+      currViewer.queryHotspot("hotspot-dot-X-Y-Z"),
+      currViewer.queryHotspot("hotspot-dot-X-Y+Z"),
+      currViewer.queryHotspot("hotspot-dim-X-Y")
+    );
+  };
+
+  currViewer?.addEventListener("load", () => {
+    const center = currViewer.getBoundingBoxCenter();
+    const size = currViewer.getDimensions();
+    const x2 = size.x / 2;
+    const y2 = size.y / 2;
+    const z2 = size.z / 2;
+
+    currViewer.updateHotspot({
+      name: "hotspot-dot+X-Y+Z",
+      position: `${center.x + x2} ${center.y - y2} ${center.z + z2}`,
+    });
+
+    currViewer.updateHotspot({
+      name: "hotspot-dim+X-Y",
+      position: `${center.x + x2 * 1.2} ${center.y - y2 * 1.1} ${center.z}`,
+    });
+    currViewer.querySelector(
+      'button[slot="hotspot-dim+X-Y"]'
+    ).textContent = `${(size.z * 100).toFixed(0)} cm`;
+
+    currViewer.updateHotspot({
+      name: "hotspot-dot+X-Y-Z",
+      position: `${center.x + x2} ${center.y - y2} ${center.z - z2}`,
+    });
+
+    currViewer.updateHotspot({
+      name: "hotspot-dim+X-Z",
+      position: `${center.x + x2 * 1.2} ${center.y} ${center.z - z2 * 1.2}`,
+    });
+    currViewer.querySelector(
+      'button[slot="hotspot-dim+X-Z"]'
+    ).textContent = `${(size.y * 100).toFixed(0)} cm`;
+
+    currViewer.updateHotspot({
+      name: "hotspot-dot+X+Y-Z",
+      position: `${center.x + x2} ${center.y + y2} ${center.z - z2}`,
+    });
+
+    currViewer.updateHotspot({
+      name: "hotspot-dim+Y-Z",
+      position: `${center.x} ${center.y + y2 * 1.1} ${center.z - z2 * 1.1}`,
+    });
+    currViewer.querySelector(
+      'button[slot="hotspot-dim+Y-Z"]'
+    ).textContent = `${(size.x * 100).toFixed(0)} cm`;
+
+    currViewer.updateHotspot({
+      name: "hotspot-dot-X+Y-Z",
+      position: `${center.x - x2} ${center.y + y2} ${center.z - z2}`,
+    });
+
+    currViewer.updateHotspot({
+      name: "hotspot-dim-X-Z",
+      position: `${center.x - x2 * 1.2} ${center.y} ${center.z - z2 * 1.2}`,
+    });
+    currViewer.querySelector(
+      'button[slot="hotspot-dim-X-Z"]'
+    ).textContent = `${(size.y * 100).toFixed(0)} cm`;
+
+    currViewer.updateHotspot({
+      name: "hotspot-dot-X-Y-Z",
+      position: `${center.x - x2} ${center.y - y2} ${center.z - z2}`,
+    });
+
+    currViewer.updateHotspot({
+      name: "hotspot-dim-X-Y",
+      position: `${center.x - x2 * 1.2} ${center.y - y2 * 1.1} ${center.z}`,
+    });
+    currViewer.querySelector(
+      'button[slot="hotspot-dim-X-Y"]'
+    ).textContent = `${(size.z * 100).toFixed(0)} cm`;
+
+    currViewer.updateHotspot({
+      name: "hotspot-dot-X-Y+Z",
+      position: `${center.x - x2} ${center.y - y2} ${center.z + z2}`,
+    });
+
+    renderSVG();
+
+    currViewer.addEventListener("camera-change", renderSVG);
+  });
+  /* End Dimensions */
+
   return (
     <section className="flex items-center justify-center w-full h-full">
       <model-viewer
@@ -111,14 +270,96 @@ const ProductViewModelCard = ({
         alt={"3D model of " + productInfo.data.productName}
         shadow-intensity="1"
         tone-mapping="commerce"
+        camera-orbit="-30deg auto auto"
+        max-camera-orbit="auto 100deg auto"
         camera-controls
         touch-action="pan-y"
-        auto-rotate
+        //auto-rotate
         autoplay
         ar
         ar-modes="webxr scene-viewer quick-look"
         ar-scale="fixed"
       >
+        <button
+          slot="hotspot-dot+X-Y+Z"
+          class="dot"
+          data-position="1 -1 1"
+          data-normal="1 0 0"
+        ></button>
+        <button
+          slot="hotspot-dim+X-Y"
+          class="dim"
+          data-position="1 -1 0"
+          data-normal="1 0 0"
+        ></button>
+        <button
+          slot="hotspot-dot+X-Y-Z"
+          class="dot"
+          data-position="1 -1 -1"
+          data-normal="1 0 0"
+        ></button>
+        <button
+          slot="hotspot-dim+X-Z"
+          class="dim"
+          data-position="1 0 -1"
+          data-normal="1 0 0"
+        ></button>
+        <button
+          slot="hotspot-dot+X+Y-Z"
+          class="dot"
+          data-position="1 1 -1"
+          data-normal="0 1 0"
+        ></button>
+        <button
+          slot="hotspot-dim+Y-Z"
+          class="dim"
+          data-position="0 -1 -1"
+          data-normal="0 1 0"
+        ></button>
+        <button
+          slot="hotspot-dot-X+Y-Z"
+          class="dot"
+          data-position="-1 1 -1"
+          data-normal="0 1 0"
+        ></button>
+        <button
+          slot="hotspot-dim-X-Z"
+          class="dim"
+          data-position="-1 0 -1"
+          data-normal="-1 0 0"
+        ></button>
+        <button
+          slot="hotspot-dot-X-Y-Z"
+          class="dot"
+          data-position="-1 -1 -1"
+          data-normal="-1 0 0"
+        ></button>
+        <button
+          slot="hotspot-dim-X-Y"
+          class="dim"
+          data-position="-1 -1 0"
+          data-normal="-1 0 0"
+        ></button>
+        <button
+          slot="hotspot-dot-X-Y+Z"
+          class="dot"
+          data-position="-1 -1 1"
+          data-normal="-1 0 0"
+        ></button>
+        <svg
+          id="dimLines"
+          width="100%"
+          height="100%"
+          xmlns="http://www.w3.org/2000/svg"
+          class="dimensionLineContainer"
+        >
+          <line class="dimensionLine"></line>
+          <line class="dimensionLine"></line>
+          <line class="dimensionLine"></line>
+          <line class="dimensionLine"></line>
+          <line class="dimensionLine"></line>
+        </svg>
+
         <div
           slot="ar-button"
           id="ARbutton"
@@ -141,15 +382,26 @@ const ProductViewModelCard = ({
             </div>
           </div>
         )}
-
-        {showVariantSelector && (
-          <div className="absolute bottom-0 flex items-center justify-center gap-4 w-full p-2 font-medium">
+        <div className="absolute bottom-0 flex items-center justify-center gap-2 w-full p-2 z-50">
+          {showVariantSelector && (
             <select
               id="VariantDropdown"
-              className="w-full p-2 bg-tif-blue text-white rounded-full shadow-md"
+              className="w-full p-2.5 bg-tif-blue text-white rounded-full shadow-md"
             ></select>
+          )}
+          <div className="flex items-center justify-center w-fit gap-2">
+            <button
+              className={`flex items-center justify-center py-2 px-4 gap-2 w-full text-white rounded-full shadow-md ${
+                showDimensions ? "bg-green-500 " : "bg-red-500 "
+              }`}
+              onClick={() => HandleDimesionToggle()}
+            >
+              <h1>Dimensions</h1>
+              {showDimensions && <EyeIcon className="w-5 h-5" />}
+              {!showDimensions && <EyeSlashIcon className="w-5 h-5" />}
+            </button>
           </div>
-        )}
+        </div>
       </model-viewer>
     </section>
   );

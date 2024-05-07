@@ -6,6 +6,7 @@ const ProductGrid = ({
   outlet,
   priceRange,
   isDisabled = false,
+  wishlistData,
 }) => {
   console.log("PG -> Outlet -> " + JSON.stringify(outlet));
   console.log("PG -> Price Range -> " + JSON.stringify(priceRange));
@@ -36,7 +37,12 @@ const ProductGrid = ({
     >
       {!isDisabled &&
         priceFilteredList.map((product) => (
-          <PG_Card key={product.productID} productInfo={product} />
+          <PG_Card
+            key={product.productID}
+            productInfo={product}
+            wishlistData={wishlistData}
+            show3D={false}
+          />
         ))}
       {isDisabled && (
         <div className="flex flex-col w-full h-full gap-1 items-center justify-center">
