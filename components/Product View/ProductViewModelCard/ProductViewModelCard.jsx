@@ -13,9 +13,14 @@ const ProductViewModelCard = ({
   analyticsOnLoad360,
 }) => {
   const [showDimensions, setShowDimensions] = useState(true);
+  const [showDepth, setShowDepth] = useState(false);
   const [showVariantSelector, setShowVariantSelector] = useState(false);
   const [showARButton, setShowARButton] = useState(false);
   const [hasARFailed, setHasARFailed] = useState(false);
+  const [modelViewerMode, setModelViewerMode] = useState(
+    "webxr scene-viewer quick-look"
+  );
+  const [isARInPresentMode, setIsARInPresentMode] = useState(false);
 
   let modelViewerVariants = null;
   let modelVariantNames = null;
@@ -43,6 +48,12 @@ const ProductViewModelCard = ({
     if (event.detail.status === "failed" && hasARFailed == false) {
       setHasARFailed(true);
       console.log("Failed to view AR");
+    }
+
+    if (event.detail.status == "session-started") {
+      setIsARInPresentMode(true);
+    } else if (event.detail.status == "not-presenting") {
+      setIsARInPresentMode(false);
     }
   });
 
@@ -86,11 +97,6 @@ const ProductViewModelCard = ({
         select.appendChild(option);
       }
 
-      /*const option = document.createElement("option");
-      option.value = "default";
-      option.textContent = "default";
-      select.appendChild(option);*/
-
       VariantDropdown.addEventListener("input", (event) => {
         if (analyticsOnVariantChanged) analyticsOnVariantChanged();
         modelViewerVariants.variantName =
@@ -99,25 +105,44 @@ const ProductViewModelCard = ({
     }
   }, [showVariantSelector]);
 
+  useEffect(() => {
+    console.log(
+      "State Changed | Dimensions: " + showDimensions + " | Depth: " + showDepth
+    );
+    if (showDepth) setModelViewerMode("scene-viewer quick-look");
+    else setModelViewerMode("webxr scene-viewer quick-look");
+  }, [showDepth, showDimensions]);
+
   function HandleClick_ARbutton() {
     console.log("AR button clicked");
     if (analyticsOnARView) analyticsOnARView();
   }
 
+  /* Depth */
+  function HandleDepthToggle() {
+    if (!showDepth) {
+      setShowDimensions(false);
+      setDimensionVisibility(false);
+    }
+    setShowDepth((prev) => !prev);
+  }
+  /* End Depth */
+
   /* Dimensions */
   const dimElements = currViewer
     ? [
-        ...currViewer.querySelectorAll("button"),
+        ...currViewer.querySelectorAll("#dimID"),
         currViewer.querySelector("#dimLines"),
       ]
     : null;
 
   function HandleDimesionToggle() {
-    setVisibility(!showDimensions);
+    if (!showDimensions) setShowDepth(false);
+    setDimensionVisibility(!showDimensions);
     setShowDimensions((prev) => !prev);
   }
 
-  function setVisibility(visible) {
+  function setDimensionVisibility(visible) {
     console.log("Setting Dim Visibility - " + visible);
     dimElements.forEach((element) => {
       if (visible) {
@@ -277,71 +302,83 @@ const ProductViewModelCard = ({
         //auto-rotate
         autoplay
         ar
-        ar-modes="webxr scene-viewer quick-look"
+        //ar-modes="webxr scene-viewer quick-look"
+        ar-modes={modelViewerMode}
         ar-scale="fixed"
       >
         <button
           slot="hotspot-dot+X-Y+Z"
+          id="dimID"
           class="dot"
           data-position="1 -1 1"
           data-normal="1 0 0"
         ></button>
         <button
           slot="hotspot-dim+X-Y"
+          id="dimID"
           class="dim"
           data-position="1 -1 0"
           data-normal="1 0 0"
         ></button>
         <button
           slot="hotspot-dot+X-Y-Z"
+          id="dimID"
           class="dot"
           data-position="1 -1 -1"
           data-normal="1 0 0"
         ></button>
         <button
           slot="hotspot-dim+X-Z"
+          id="dimID"
           class="dim"
           data-position="1 0 -1"
           data-normal="1 0 0"
         ></button>
         <button
           slot="hotspot-dot+X+Y-Z"
+          id="dimID"
           class="dot"
           data-position="1 1 -1"
           data-normal="0 1 0"
         ></button>
         <button
           slot="hotspot-dim+Y-Z"
+          id="dimID"
           class="dim"
           data-position="0 -1 -1"
           data-normal="0 1 0"
         ></button>
         <button
           slot="hotspot-dot-X+Y-Z"
+          id="dimID"
           class="dot"
           data-position="-1 1 -1"
           data-normal="0 1 0"
         ></button>
         <button
           slot="hotspot-dim-X-Z"
+          id="dimID"
           class="dim"
           data-position="-1 0 -1"
           data-normal="-1 0 0"
         ></button>
         <button
           slot="hotspot-dot-X-Y-Z"
+          id="dimID"
           class="dot"
           data-position="-1 -1 -1"
           data-normal="-1 0 0"
         ></button>
         <button
           slot="hotspot-dim-X-Y"
+          id="dimID"
           class="dim"
           data-position="-1 -1 0"
           data-normal="-1 0 0"
         ></button>
         <button
           slot="hotspot-dot-X-Y+Z"
+          id="dimID"
           class="dot"
           data-position="-1 -1 1"
           data-normal="-1 0 0"
@@ -382,15 +419,11 @@ const ProductViewModelCard = ({
             </div>
           </div>
         )}
-        <div className="absolute bottom-0 flex items-center justify-center gap-2 w-full p-2 z-50">
-          {showVariantSelector && (
-            <select
-              id="VariantDropdown"
-              className="w-full p-2.5 bg-tif-blue text-white rounded-full shadow-md"
-            ></select>
-          )}
+
+        <div className="absolute bottom-0 flex flex-col items-center justify-center gap-2 w-full p-2 z-50">
           <div className="flex items-center justify-center w-fit gap-2">
             <button
+              class="nonDim"
               className={`flex items-center justify-center py-2 px-4 gap-2 w-full text-white rounded-full shadow-md ${
                 showDimensions ? "bg-green-500 " : "bg-red-500 "
               }`}
@@ -400,7 +433,28 @@ const ProductViewModelCard = ({
               {showDimensions && <EyeIcon className="w-5 h-5" />}
               {!showDimensions && <EyeSlashIcon className="w-5 h-5" />}
             </button>
+
+            {!isARInPresentMode && (
+              <button
+                class="nonDim"
+                className={`flex items-center justify-center py-2 px-4 gap-2 w-full text-white rounded-full shadow-md ${
+                  showDepth ? "bg-green-500 " : "bg-red-500 "
+                }`}
+                onClick={() => HandleDepthToggle()}
+              >
+                <h1>Depth</h1>
+                {showDepth && <EyeIcon className="w-5 h-5" />}
+                {!showDepth && <EyeSlashIcon className="w-5 h-5" />}
+              </button>
+            )}
           </div>
+
+          {showVariantSelector && (
+            <select
+              id="VariantDropdown"
+              className="w-full p-2.5 bg-tif-blue text-white rounded-full shadow-md"
+            ></select>
+          )}
         </div>
       </model-viewer>
     </section>
